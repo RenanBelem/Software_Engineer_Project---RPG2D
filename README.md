@@ -1,6 +1,6 @@
 # ⚔️ Projeto de Engenharia de Software: RPG 2D (Java)
 
-Este é um projeto de um jogo de RPG baseado em console, desenvolvido em Java. O jogo simula a exploração de um herói em uma masmorra (labirinto), onde ele deve encontrar a saída utilizando um algoritmo de busca (Backtracking), enquanto enfrenta monstros do folclore e interage com itens e ajudantes misteriosos.
+Este é um jogo de RPG baseado em console desenvolvido em Java. O projeto simula a exploração de uma masmorra utilizando um algoritmo de busca (Backtracking) para movimentação, combinado com uma arquitetura robusta orientada a objetos para gerenciar a criação de entidades (Monstros, Itens e Ajudantes).
 
 ## 👥 Autores (Grupo Eng\_Software 1)
 
@@ -11,73 +11,61 @@ Este é um projeto de um jogo de RPG baseado em console, desenvolvido em Java. O
 
 -----
 
-## 🎮 Sobre o Jogo
+## 🏗️ Arquitetura e Design Patterns
 
-O jogo opera como um **"Dungeon Crawler" semi-automático**. O movimento do herói é controlado por um algoritmo recursivo que tenta encontrar a saída (`=`). No entanto, as **interações** (combates, escolhas de itens e negociações com NPCs) exigem a decisão do jogador.
+A principal atualização desta versão é a implementação do padrão **Factory Method**. O objetivo foi desacoplar a lógica do mapa da criação de objetos, facilitando a manutenção e a adição de novos elementos ao jogo.
 
-### Principais Funcionalidades
+### 1\. Centralização (`ConstrutorDeEntidades`)
 
-1.  **Exploração Automática (Backtracking):** O herói navega pelo labirinto (`mapa.txt`) recursivamente, marcando o caminho percorrido.
-2.  **Sistema de Combate em Turnos:** Batalhas contra monstros com atributos de Ataque, Defesa e Vida.
-3.  **Gerenciamento de Inventário:** O herói possui slots para **Mão Direita** e **Mão Esquerda**, podendo equipar Espadas e Escudos.
-4.  **Sistema de Ajudantes (Risco vs. Recompensa):**
-      * **Anão:** Aumenta drasticamente o ataque do herói, mas fortalece o próximo monstro.
-      * **Duende:** Reduz a vida do monstro pela metade, mas cobra um preço na vida do herói.
-5.  **Folclore Brasileiro:** Inimigos temáticos como **Curupira** e **Bicho-Papão**.
+A classe `ConstrutorDeEntidades` atua como um registro central (Registry). Ela mapeia os caracteres do mapa (`char`) para suas respectivas fábricas.
+
+  * Isso elimina as longas estruturas de decisão (`if/else` ou `switch`) de dentro da classe `Mapa`.
+  * Para adicionar um novo monstro, basta criar sua classe, sua fábrica e registrar no construtor.
+
+### 2\. Fábricas (Factories)
+
+O projeto define interfaces para a criação de famílias de objetos:
+
+  * **`MonstroFactory`**: Implementada por `BichoPapaoFactory` e `CurupiraFactory`.
+  * **`AjudanteFactory`**: Implementada por `AnaoFactory` e `DuendeFactory`.
+  * **`ItemFactory`**: Implementada por `EspadaFactory` e `EscudoFactory`.
+  * **`PocaoFactory`**: Implementada por `CuraFactory`.
+
+### 3\. Diagrama de Classes
+
+O projeto segue o diagrama estrutural `diagrama_de_requisitos.drawio.png`, onde `Heroi` e `Monstro` compartilham atributos base (vida, ataque, defesa), e as interações são mediadas pelas interfaces das fábricas.
+
+-----
+
+## 🎮 Funcionalidades do Jogo
+
+O jogo opera como um **"Dungeon Crawler" semi-automático**:
+
+1.  **Movimentação (Backtracking):** O herói utiliza um algoritmo recursivo (`encontraSaida` em `Mapa.java`) para navegar pelo labirinto, evitando paredes (`#`) e caminhos já visitados, até encontrar a saída (`=`).
+2.  **Combate em Turnos:** Ao encontrar um inimigo, o jogo entra em loop de batalha. O jogador decide se continua ou desiste após a vitória.
+3.  **Sistema de Equipamentos:**
+      * **Mão Direita/Esquerda:** O herói pode equipar itens em mãos específicas. Equipar um novo item remove o bônus do anterior.
+      * **Bônus Fixos:** Definidos no `EnumBonusItem` (Espada +10, Escudo +8, Cura +30).
+4.  **Ajudantes com "Trade-offs":** NPCs oferecem ajuda com um custo estratégico.
 
 -----
 
 ## 🗺️ Legenda do Mapa (`mapa.txt`)
 
-O arquivo `mapa.txt` representa o tabuleiro do jogo. Cada caractere tem um significado:
+O arquivo `mapa.txt` é a representação visual do nível. O `ConstrutorDeEntidades` interpreta estes símbolos:
 
-| Símbolo | Significado | Descrição |
-| :---: | :--- | :--- |
-| **8** | **Herói** | Posição inicial do jogador. |
-| **=** | **Saída** | Objetivo final do jogo. |
-| **\#** | **Parede** | Obstáculo intransponível. |
-| **.** | **Caminho** | Espaço livre (ou caminho já visitado). |
-| **e** | **Espada** | Item que aumenta o Ataque. |
-| **d** | **Escudo** | Item que aumenta a Defesa. |
-| **c** | **Poção/Cura** | Restaura pontos de vida. |
-| **?** | **Bicho Papão** | Monstro com ataque equilibrado. |
-| **\*** | **Curupira** | Monstro com defesa alta. |
-| **&** | **Anão** | Ajudante que oferece bônus de ataque. |
-| **^** | **Duende** | Ajudante que enfraquece monstros. |
-
------
-
-## 🏗️ Estrutura do Projeto (Arquitetura)
-
-O projeto segue os princípios da Orientação a Objetos (POO), utilizando **Herança**, **Polimorfismo**, **Interfaces** e **Classes Abstratas**.
-
-### 1\. Núcleo (`Core`)
-
-  * **`Main.java`**: Ponto de entrada. Carrega o mapa e inicia a busca pela saída.
-  * **`Mapa.java`**: Cérebro do jogo.
-      * Lê o arquivo `mapa.txt`.
-      * Implementa o algoritmo recursivo `encontraSaida`.
-      * Gerencia o loop de batalha e interações.
-  * **`Entidade.java`**: (Conceitual) Base para atributos comuns como Ataque, Defesa e Vida.
-
-### 2\. Personagens (`Characters`)
-
-  * **`Heroi.java`**: O protagonista. Gerencia inventário (duas mãos), lista de ajudantes e status atuais.
-  * **`Monstro.java`** *(Abstrata)*: Define o comportamento básico dos inimigos.
-      * **`BichoPapao.java`**: Inimigo focado em dano direto.
-      * **`Curupira.java`**: Inimigo com alta defesa.
-  * **`Ajudante.java`** *(Interface)*: Contrato para NPCs.
-      * **`Anao.java`**: Bônus de Ataque (+85%) / Penalidade: Monstro mais forte (+35% Vida).
-      * **`Duende.java`**: Bônus no Inimigo (Vida / 2) / Penalidade: Dano no Herói (10% Vida atual).
-
-### 3\. Itens e Equipamentos (`Items`)
-
-  * **`Item.java`** *(Abstrata)*: Classe base para equipamentos.
-      * **`Espada.java`**: Aumenta o Ataque.
-      * **`Escudo.java`**: Aumenta a Defesa.
-  * **`Pocao.java`**: Classe base para consumíveis.
-      * **`Cura.java`**: Recupera vida fixa (+30).
-  * **`EnumBonusItem.java`**: Define os valores constantes dos bônus.
+| Símbolo | Entidade | Tipo | Descrição |
+| :---: | :--- | :--- | :--- |
+| **8** | **Herói** | Jogador | Posição inicial. |
+| **=** | **Saída** | Objetivo | Ponto final do labirinto. |
+| **\#** | **Parede** | Cenário | Bloqueio intransponível. |
+| **?** | **Bicho Papão** | Monstro | Inimigo com ataque balanceado. |
+| **\*** | **Curupira** | Monstro | Inimigo com defesa alta. |
+| **&** | **Anão** | Ajudante | Aumenta Ataque do Herói / Aumenta Vida do Monstro. |
+| **^** | **Duende** | Ajudante | Reduz Vida do Monstro pela metade / Dano no Herói. |
+| **e** | **Espada** | Item | Aumenta Ataque (+10). |
+| **d** | **Escudo** | Item | Aumenta Defesa (+8). |
+| **c** | **Poção** | Consumível | Recupera Vida (+30). |
 
 -----
 
@@ -87,45 +75,41 @@ O projeto segue os princípios da Orientação a Objetos (POO), utilizando **Her
 
   * Java Development Kit (JDK) instalado.
 
-### Passos
+### Configuração Importante
 
-1.  Compile todos os arquivos `.java`:
-    ```bash
-    javac *.java
-    ```
-2.  Certifique-se de que o arquivo `mapa.txt` esteja dentro de uma pasta chamada `src` (conforme definido no código `Main.java`) ou ajuste o caminho no `Main.java` se estiver na raiz.
-      * *Estrutura recomendada:*
-        ```
-        /projeto
-          /src
-            mapa.txt
-          Main.java
-          Heroi.java
-          ... (outros arquivos java)
-        ```
-3.  Execute o jogo:
-    ```bash
-    java Main
-    ```
+Antes de executar, verifique a classe `Main.java`. O caminho do arquivo de mapa está absoluto e **precisa ser alterado** para o caminho da sua máquina:
+
+```java
+// Em Main.java, altere esta linha:
+Mapa map = new Mapa("C:\\Seu\\Caminho\\Para\\src\\mapa.txt", 17, 21);
+```
+
+### Compilação e Execução
+
+No terminal, navegue até a pasta dos arquivos (`src`) e execute:
+
+```bash
+javac *.java
+java Main
+```
 
 -----
 
-## 🧠 Lógica de Decisão (Ajudantes)
+## 🧠 Detalhes das Interações
 
-O jogo apresenta dilemas estratégicos ao encontrar ajudantes:
+### Monstros
 
-> **Encontro com Anão:**
+  * **Bicho Papão:** Focado em causar dano direto.
+  * **Curupira:** Possui defesa elevada, exigindo mais turnos ou maior ataque para ser derrotado.
+
+### Ajudantes (Estratégia)
+
+A interação com ajudantes foi movida para métodos encapsulados na interface `Ajudante`:
+
+> **Anão:** "Aumento seu ataque em 85%, mas o próximo monstro terá 35% a mais de vida."
 >
->   * *Oferta:* "Aumento seu ataque em 85%."
->   * *Preço:* "O próximo monstro terá 35% a mais de vida."
->   * *Estratégia:* Bom se você tiver pouca vida e precisar acabar com a luta rápido, mas perigoso contra monstros "tanques" (como o Curupira).
-
-> **Encontro com Duende:**
->
->   * *Oferta:* "Reduzo a vida do próximo monstro pela metade."
->   * *Preço:* "Você perde 10% da sua vida atual."
->   * *Estratégia:* Excelente contra chefes ou monstros fortes, desde que você tenha vida suficiente para sacrificar.
+> **Duende:** "Corto a vida do monstro pela metade, mas cobro 10% da sua vida agora."
 
 -----
 
-**Status do Projeto:** Finalizado para fins acadêmicos da disciplina de Engenharia de Software da Graduação em Ciência da Computação.
+**Status:** Projeto refatorado com Factory Method para modularidade e extensibilidade.
