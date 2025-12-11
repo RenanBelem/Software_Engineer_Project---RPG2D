@@ -1,0 +1,15 @@
+18/11/2025 18:33:55 Herói encontrou um(a) Espada
+18/11/2025 18:47:42 Herói encontrou um(a) Espada
+18/11/2025 18:47:53 Herói encontrou um(a) Escudo
+18/11/2025 18:47:59 Herói usou uma Poção de Cura.
+18/11/2025 18:48:00 Herói vai batalhar contra um Curupira
+18/11/2025 18:59:59 Herói encontrou um(a) Espada
+18/11/2025 19:00:29 Herói encontrou um(a) Espada
+18/11/2025 19:00:59 Herói encontrou um(a) Escudo
+18/11/2025 19:01:04 Herói usou uma Poção de Cura.
+18/11/2025 19:01:05 Herói vai batalhar contra um Curupira
+18/11/2025 19:01:15 Herói vai batalhar contra um BichoPapao
+18/11/2025 19:01:23 Herói se aproximou de um Duende
+18/11/2025 19:01:25 Herói aceitou a ajuda do Duende.
+18/11/2025 19:01:26 Herói se aproximou de um Anao
+18/11/2025 19:01:28 Herói aceitou a ajuda do Anao.
