@@ -1,6 +1,6 @@
 # ⚔️ Projeto de Engenharia de Software: RPG 2D (Java)
 
-Este é um jogo de RPG baseado em console desenvolvido em Java. O projeto simula a exploração de uma masmorra utilizando **Backtracking** para movimentação automática e **Design Patterns** (Factory Method e Iterator) para garantir uma arquitetura de software modular, desacoplada e extensível.
+Este é um jogo de RPG baseado em console desenvolvido em Java. O projeto combina algoritmos de busca (**Backtracking**) com uma arquitetura de software avançada, implementando três padrões de projeto do GoF (**Factory Method**, **Iterator** e **Proxy**) para garantir modularidade, segurança e rastreabilidade.
 
 ## 👥 Autores (Grupo Eng\_Software 1)
 
@@ -11,73 +11,65 @@ Este é um jogo de RPG baseado em console desenvolvido em Java. O projeto simula
 
 -----
 
-## 🏗️ Arquitetura e Design Patterns
+## 🏗️ Arquitetura e Padrões de Projeto
 
-O projeto foi refatorado para incluir dois padrões de projeto principais do GoF (Gang of Four), visando resolver problemas específicos de criação e acesso a dados.
+O projeto foi desenhado para demonstrar a aplicação prática de padrões de Engenharia de Software:
 
-### 1\. Padrão Iterator (Novidade)
+### 1\. Padrão Proxy (Gerenciamento de Logs)
 
-Implementado para permitir que o jogo percorra os itens da mochila do herói sem expor a estrutura interna da lista (`ArrayList`).
+Implementado para adicionar funcionalidades de **log (registro de eventos)** sem modificar a lógica de negócio das entidades principais.
 
-  * **Interface `Iterator<T>`:** Define os métodos padronizados `hasNext()` e `next()`.
-  * **Concrete Iterator (`MochilaIterator`):** Implementa a lógica de navegação específica para a coleção de itens.
-  * **Aggregate (`MochilaDeItens`):** Atua como o contêiner dos itens. Possui o método `criarIterator()` que retorna uma instância de `MochilaIterator`, permitindo que classes externas (como `Mapa`) listem o inventário sem tocar na lista privada.
-  * **Cliente (`Mapa`):** No loop principal do jogo, o mapa solicita o iterador para exibir o conteúdo da mochila a cada passo do herói.
+  * **Funcionamento:** Classes como `ProxyMonstro`, `ProxyItem` e `ProxyAjudante` envolvem os objetos reais. Elas interceptam as chamadas de métodos para registrar ações no arquivo `log_jogo.txt` antes ou depois de delegar a execução para o objeto real.
+  * **Fábricas com Proxy:** As fábricas também são proxificadas (ex: `ProxyMonstroFactory`). Quando o mapa solicita um monstro, a fábrica retorna um `ProxyMonstro` em vez da instância crua.
 
-### 2\. Padrão Factory Method
+### 2\. Padrão Iterator (Gestão de Inventário)
 
-Utilizado para desacoplar a lógica do mapa da criação de objetos concretos.
+Permite percorrer os itens da mochila do herói sem expor a estrutura interna da lista (`ArrayList`).
 
-  * **Registro Central (`ConstrutorDeEntidades`):** Mapeia caracteres do mapa (ex: `'?'`, `'e'`, `'^'`) para suas respectivas fábricas, eliminando condicionais complexas.
-  * **Famílias de Fábricas:**
-      * `MonstroFactory` (cria `BichoPapao`, `Curupira`).
-      * `ItemFactory` (cria `Espada`, `Escudo`).
-      * `AjudanteFactory` (cria `Anao`, `Duende`).
+  * **Componentes:**
+      * `Iterator<T>`: Interface comum de navegação.
+      * `MochilaIterator`: Implementação concreta que controla o cursor.
+      * `MochilaDeItens`: O agregado que cria o iterador para o cliente (`Mapa`).
+
+### 3\. Padrão Factory Method (Criação de Objetos)
+
+Desacopla a lógica do jogo da instanciação direta de classes.
+
+  * **Registro Central:** A classe `ConstrutorDeEntidades` atua como um registro que mapeia caracteres do mapa (ex: `'?'`) para suas respectivas fábricas (agora encapsuladas em proxies).
+  * **Extensibilidade:** Para adicionar um novo inimigo, basta criar a classe do monstro, sua fábrica e registrá-la, sem alterar o loop principal do jogo.
 
 -----
 
 ## 🎮 Mecânicas do Jogo
 
-O jogo opera como um **"Dungeon Crawler" semi-automático** com gerenciamento estratégico de recursos.
+O jogo é um **Dungeon Crawler semi-automático**:
 
-### Exploração e Mapa
+1.  **Exploração:** O herói move-se automaticamente usando um algoritmo recursivo (Backtracking) para encontrar a saída (`=`).
+2.  **Combate e Interação:** Ao encontrar uma entidade, o jogo pausa e aguarda decisão do jogador ou resolve o combate em turnos.
+3.  **Logs:** Todas as ações críticas (encontros, itens pegos, início de batalhas) são salvas automaticamente em `log_jogo.txt` com data e hora.
 
-  * **Movimentação:** O herói utiliza um algoritmo recursivo (`encontraSaida`) para navegar pelo labirinto (`mapa.txt`), evitando paredes (`#`) e rastreando caminhos visitados.
-  * **Visualização:** A cada passo, o console é limpo e o mapa atualizado é desenhado, seguido pelo status do herói e **listagem da mochila via Iterator**.
+### Entidades e Símbolos (`mapa.txt`)
 
-### Inventário e Mochila
-
-Ao encontrar um item (`Espada` ou `Escudo`), o jogador tem três escolhas estratégicas:
-
-1.  **Equipar na Direita ('d'):** Substitui o item atual e aplica o bônus.
-2.  **Equipar na Esquerda ('e'):** Substitui o item atual e aplica o bônus.
-3.  **Guardar na Mochila ('g'):** Armazena o item na `MochilaDeItens` para uso futuro ou apenas para coleção. Estes itens são listados no HUD do jogo.
-
-### Combate e NPCs
-
-  * **Monstros:** O combate é em turnos. `BichoPapao` foca em ataque, enquanto `Curupira` possui defesa elevada.
-  * **Ajudantes (Risco vs. Recompensa):**
-      * **Anão:** Aumenta muito seu ataque, mas fortalece a vida do próximo monstro.
-      * **Duende:** Reduz a vida do monstro pela metade, mas cobra um custo de vida do herói imediatamente.
+| Símbolo | Entidade | Tipo | Descrição / Efeito |
+| :---: | :--- | :--- | :--- |
+| **8** | **Herói** | Jogador | Posição atual. |
+| **=** | **Saída** | Objetivo | Ponto final do labirinto. |
+| **\#** | **Parede** | Cenário | Bloqueio intransponível. |
+| **?** | **Bicho Papão** | Monstro | Ataque médio, focado em dano. |
+| **\*** | **Curupira** | Monstro | Defesa alta, difícil de acertar. |
+| **&** | **Anão** | Ajudante | **Bônus:** +85% Ataque do Herói.<br>**Custo:** +35% Vida do próximo monstro. |
+| **^** | **Duende** | Ajudante | **Bônus:** Reduz vida do monstro pela metade.<br>**Custo:** Remove 10% da vida atual do Herói. |
+| **e** | **Espada** | Item | Aumenta o Ataque (+10). |
+| **d** | **Escudo** | Item | Aumenta a Defesa (+8). |
+| **c** | **Poção** | Consumível | Recupera Vida (+30). |
 
 -----
 
-## 🗺️ Legenda do Mapa
+## 📂 Estrutura de Arquivos e UML
 
-O arquivo `mapa.txt` é interpretado pelo `ConstrutorDeEntidades`:
+O diagrama abaixo ilustra a relação entre as classes base (`Entidade`, `Item`), as classes concretas e as interfaces de Fábrica:
 
-| Símbolo | Entidade | Descrição |
-| :---: | :--- | :--- |
-| **8** | **Herói** | Posição atual do jogador. |
-| **=** | **Saída** | Objetivo final. |
-| **\#** | **Parede** | Obstáculo. |
-| **?** | **Bicho Papão** | Inimigo (Ataque Médio). |
-| **\*** | **Curupira** | Inimigo (Defesa Alta). |
-| **&** | **Anão** | Ajudante (+Ataque / +Vida Monstro). |
-| **^** | **Duende** | Ajudante (-Vida Monstro / -Vida Herói). |
-| **e** | **Espada** | Item (+10 Ataque). |
-| **d** | **Escudo** | Item (+8 Defesa). |
-| **c** | **Poção** | Consumível (+30 Vida). |
+*Nota: Na implementação final, as classes `Proxy...` envolvem as classes concretas (ex: `BichoPapao`, `Espada`) representadas no diagrama.*
 
 -----
 
@@ -85,37 +77,40 @@ O arquivo `mapa.txt` é interpretado pelo `ConstrutorDeEntidades`:
 
 ### Pré-requisitos
 
-  * Java Development Kit (JDK) instalado.
+  * Java JDK 8 ou superior instalado.
 
-### Configuração de Caminho
+### Passo a Passo
 
-⚠️ **Atenção:** O arquivo `Main.java` utiliza um caminho para carregar o mapa. Verifique a linha abaixo antes de rodar:
+1.  **Configuração do Mapa:**
+    Verifique o arquivo `Main.java`. Ele busca o arquivo de mapa. Certifique-se de que `mapa.txt` está no diretório correto ou ajuste o caminho:
 
-```java
-// Em Main.java
-String caminhoMapa = Paths.get("Mapa.txt").toString(); 
-// Certifique-se de que o arquivo Mapa.txt está na raiz do projeto ao executar
-```
+    ```java
+    String caminhoMapa = Paths.get("Mapa.txt").toString();
+    ```
 
-### Compilação e Execução
+2.  **Compilação:**
+    Abra o terminal na pasta contendo os arquivos `.java` e execute:
 
-No terminal, na pasta onde estão os arquivos `.java`:
+    ```bash
+    javac *.java
+    ```
 
-```bash
-javac *.java
-java Main
+3.  **Execução:**
+
+    ```bash
+    java Main
+    ```
+
+### Verificando os Logs
+
+Após a execução, um arquivo `log_jogo.txt` será gerado na raiz do projeto. Ele conterá o histórico da partida no seguinte formato:
+
+```text
+18/11/2025 19:01:23 Herói encontrou um(a) Espada
+18/11/2025 19:01:25 Herói vai batalhar contra um BichoPapao
+18/11/2025 19:01:28 Herói aceitou a ajuda do Duende.
 ```
 
 -----
 
-## 🧠 Diagrama de Classes
-
-A estrutura do projeto segue o diagrama `diagrama_de_requisitos.drawio.png`, onde:
-
-  * `MochilaDeItens` compõe `Heroi`.
-  * `MochilaIterator` implementa `Iterator`.
-  * As classes Factory criam as instâncias de `Entidade`.
-
------
-
-**Status:** Projeto refatorado com Factory Method e Iterator Pattern para modularidade, desacoplamento e extensibilidade.
+**Status:** Projeto finalizado e refatorado com Factory Method, Iterator Pattern e Proxy implementados para modularidade, desacoplamento e extensibilidade.
